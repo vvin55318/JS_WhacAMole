@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!--關閉手機點兩下的放大功能 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" /> 
+    <title>Document</title>
+    <style>
+        .content{
+            width:100vw;
+            height:100vh;
+            display:flex;
+            flex-flow:column nowrap;
+            justify-content: center;
+            align-items: center;
+        }
+        .row{
+            /* background:#ddd;。 */
+            cursor:pointer;
+        }
+        .cell{
+            background:yellow;
+            /* border:5px solid red; */
+            width:100px;
+            height:100px;
+        }
+        .control{
+            margin-top:20px;
+            width:350px;
+        }
+        .msg{
+            display:flex;
+        }
+        span{
+
+            line-height:30px;
+        }
+        button{
+            margin:0 8px;
+            width:40%;
+            height:30px;
+            background:rgb(255, 133, 133);
+            border:1px solid transparent;
+            border-radius:50px;
+            line-height:30%;
+            color:#fff;
+            box-shadow:2px 2px 5px #333;
+        }
+        button:hover{
+            background:rgb(255, 88, 88);
+        }
+
+        button:active{
+            background:rgb(255, 0, 0);
+            box-shadow:5px 5px 10px #333;
+        }
+    
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div class="row">
+            <img src="images/yellow.png" class="cell" title="yellow" onclick="getcount(0)">
+            <img src="images/yellow.png" class="cell" title="yellow" onclick="getcount(1)">
+            <img src="images/yellow.png" class="cell" title="yellow" onclick="getcount(2)">
+        </div>
+        <div class="row">
+            <img src="images/yellow.png" class="cell" title="yellow" onclick="getcount(3)">
+            <img src="images/yellow.png" class="cell" title="yellow" onclick="getcount(4)">
+            <img src="images/yellow.png" class="cell" title="yellow" onclick="getcount(5)">
+        </div>
+        <div class="row">
+            <img src="images/yellow.png" class="cell" title="yellow" onclick="getcount(6)">
+            <img src="images/yellow.png" class="cell" title="yellow" onclick="getcount(7)">
+            <img src="images/yellow.png" class="cell" title="yellow" onclick="getcount(8)">
+        </div>
+        <div class="control">
+            <div class="msg">   
+                    <span>剩餘時間:<span id="time">60</span>s</span>
+                <button>遊戲開始</button>
+                <span>成績分數:<span id="combo">0</span></span>
+            </div>
+            <hr>
+            <b>遊戲說明</b>
+            <p>打地鼠遊戲，請點擊圖片獲得分數</p>
+            <hr>
+        </div>
+    </div>
+
+
+
+
+    <script>
+        //初始化
+        var btn=document.getElementsByTagName('button')[0];
+        var time=document.getElementById('time');
+        var combo=document.getElementById('combo');
+        var ball=document.getElementsByClassName('cell');     
+        var beYellow=new Array(); //到時候會存放所有red事件的轉黃定時器，陣列有100個位置
+
+        var flag=0; //判別遊戲狀況 停止0 遊戲中1
+        var sec=0,count=0;
+
+
+        btn.addEventListener('click',gamestart);
+
+        function gamestart(){ //遊戲開始
+            sec=60,count=0,flag=1;
+            time.textContent=sec;
+            combo.textContent=count;
+
+            btn.removeEventListener('click',gamestart); // 關閉btn，無再讓人去按他去出發多餘的gamestart()
+
+            let start=setInterval(()=>{
+                if(sec==0){ 
+                    clearInterval(start);
+                    flag=0;
+                    btn.addEventListener('click',gamestart); //開啟btn
+                }
+                else{ 
+                sec--;
+                time.textContent=`${sec}`;
+                }
+            },1000);
+
+            for(let i=0;i<100;i++){  //產生100組紅色事件
+                let ontime=Math.floor(Math.random()*57001); //隨機1~57000毫秒，因為有delay的秒數，所以要扣掉
+                let which=Math.floor(Math.random()*9);  //隨機0~8的位置
+                let delay=Math.floor(Math.random()*3)+1;  //隨機1~3秒
+                setTimeout(()=>{
+                    showit(which,delay,i);
+                },ontime);  
+            }
+        }
+        function showit(si_which,si_delay,si_id){  //變成red事件
+            if(ball[si_which].title!="yellow"){  //不是yellow狀態，就不能進行紅色事件
+                // let next=(si_which==8)?0:si_which+1; //寫法1
+                // let next=(si_which+1)%9; //寫法2 得到0~8
+                let next=Math.floor(Math.random()*9); //重新再隨機一次位置
+
+
+                setTimeout(() => {
+                    showit(next,si_delay)
+                }, 100); //避免產生全紅事件導致當機，因此延遲100毫秒
+
+
+            }
+            else{ //確定該位置是黃色，才可進行紅色事件
+                ball[si_which].src="images/red.png";
+                ball[si_which].style.background="red";
+                ball[si_which].title="red";
+                ball[si_which].alt="si_id;";
+
+            beYellow[si_id]=setTimeout(() => {  //red多久之後變回yellow
+                ball[si_which].src="images/yellow.png";
+                ball[si_which].style.background=null;
+                ball[si_which].title="yellow";
+                ball[si_which].alt=null;
+            }, si_delay*1000);
+            }
+        }
+
+
+        function getcount(who){  //計分且將紅色變綠色，who=0~8
+            if(ball[who].title=="red" && flag==1){  //確定是遊戲中的紅色事件
+                ball[who].src="images/green.png";
+                ball[who].style.background="green";
+                ball[who].title="green";
+
+                count++;
+                combo.textContent=count;
+
+                id=ball[who].alt;
+                clearTimeout(beYellow[id]); //清除原先路線上的轉黃定時器
+                ball[who].alt=null;
+
+                setTimeout(() => {
+                    ball[who].src="images/yellow.png";
+                    ball[who].style.background=null;
+                    ball[who].title="yellow";
+                },1000);
+            }
+        }
+
+        document.onkeydown=keyboard;
+        function keyboard(){
+            console.log(event.keyCode);
+            switch (event.keyCode) {
+                case 103:
+                    getcount(0)
+                break;
+                case 104:
+                    getcount(1)
+                break;
+                case 105:
+                    getcount(2)
+                break;
+                case 100:
+                    getcount(3)
+                break;
+                case 101:
+                    getcount(4)
+                break;
+                case 102:
+                    getcount(5)
+                break;
+                case 97:
+                    getcount(6)
+                break;
+                case 98:
+                    getcount(7)
+                break;
+                case 99:
+                    getcount(8)
+                break;
+    
+            }
+        }
+
+    </script>
+
+
+</body>
+</html>

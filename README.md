@@ -1,1 +1,1 @@
-JS_WhacAMole
+WhacAMole
